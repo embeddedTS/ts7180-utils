@@ -7,4 +7,6 @@ load_fpga_LDFLAGS = -mcpu=cortex-a9
 tsmicroctl_SOURCES = tsmicroctl.c
 tsmicroctl_CPPFLAGS = -DCTL
 
-bin_PROGRAMS = tshwctl load_fpga tsmicroctl
+get_opt_SOURCES = get-opt.c fpga.c
+
+bin_PROGRAMS = tshwctl load_fpga tsmicroctl get-opt

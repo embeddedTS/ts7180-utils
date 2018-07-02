@@ -76,7 +76,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = tshwctl$(EXEEXT) load_fpga$(EXEEXT) tsmicroctl$(EXEEXT)
+bin_PROGRAMS = tshwctl$(EXEEXT) load_fpga$(EXEEXT) tsmicroctl$(EXEEXT) \
+	get-opt$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -89,6 +90,9 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
+am_get_opt_OBJECTS = get-opt.$(OBJEXT) fpga.$(OBJEXT)
+get_opt_OBJECTS = $(am_get_opt_OBJECTS)
+get_opt_LDADD = $(LDADD)
 am_load_fpga_OBJECTS = load_fpga-ts7180.$(OBJEXT) load_fpga.$(OBJEXT) \
 	gpiolib-fast.$(OBJEXT) ispvm.$(OBJEXT)
 load_fpga_OBJECTS = $(am_load_fpga_OBJECTS)
@@ -135,10 +139,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(load_fpga_SOURCES) $(tshwctl_SOURCES) \
+SOURCES = $(get_opt_SOURCES) $(load_fpga_SOURCES) $(tshwctl_SOURCES) \
 	$(tsmicroctl_SOURCES)
-DIST_SOURCES = $(load_fpga_SOURCES) $(tshwctl_SOURCES) \
-	$(tsmicroctl_SOURCES)
+DIST_SOURCES = $(get_opt_SOURCES) $(load_fpga_SOURCES) \
+	$(tshwctl_SOURCES) $(tsmicroctl_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -257,6 +261,7 @@ load_fpga_SOURCES = load_fpga-ts7180.c load_fpga.c -o load_fpga gpiolib-fast.c i
 load_fpga_LDFLAGS = -mcpu=cortex-a9
 tsmicroctl_SOURCES = tsmicroctl.c
 tsmicroctl_CPPFLAGS = -DCTL
+get_opt_SOURCES = get-opt.c fpga.c
 all: all-am
 
 .SUFFIXES:
@@ -334,6 +339,10 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
+get-opt$(EXEEXT): $(get_opt_OBJECTS) $(get_opt_DEPENDENCIES) $(EXTRA_get_opt_DEPENDENCIES) 
+	@rm -f get-opt$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(get_opt_OBJECTS) $(get_opt_LDADD) $(LIBS)
+
 load_fpga$(EXEEXT): $(load_fpga_OBJECTS) $(load_fpga_DEPENDENCIES) $(EXTRA_load_fpga_DEPENDENCIES) 
 	@rm -f load_fpga$(EXEEXT)
 	$(AM_V_CCLD)$(load_fpga_LINK) $(load_fpga_OBJECTS) $(load_fpga_LDADD) $(LIBS)
@@ -353,6 +362,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fpga.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get-opt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gpiolib-fast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ispvm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/load_fpga-ts7180.Po@am__quote@
