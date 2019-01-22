@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <dirent.h> 
+#include <dirent.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -40,19 +40,19 @@
 #include "i2c-dev.h"
 
 /*
-   0,1   P1.2, AN_SUP_CAP_1
-   2,3   P1.3, AN_SUP_CAP_2
-   4,5   P1.4, AN_MAIN_4.7V
-   6,7   P2.0, VIN (scaled 5.3%)
-   8,9   P2.1  5.2V_A (scaled 44%)
-   10,11 P2.2  3.3V (scaled 50%)
-   12,13 P2.3  RAM_1.35V
-   14,17 reserved
-   18,19 P2.4  VDD_6UL_CORE
-   20,21 P2.5  AN_CHRG (scaled 50%)
-   22,23 P2.6  VDD_SOC_CAP
-   24,25 P2.7  VDD_ARM_CAP
-   
+	0,1   P1.2, AN_SUP_CAP_1
+	2,3   P1.3, AN_SUP_CAP_2
+	4,5   P1.4, AN_MAIN_4.7V
+	6,7   P2.0, VIN (scaled 5.3%)
+	8,9   P2.1  5.2V_A (scaled 44%)
+	10,11 P2.2  3.3V (scaled 50%)
+	12,13 P2.3  RAM_1.35V
+	14,17 reserved
+	18,19 P2.4  VDD_6UL_CORE
+	20,21 P2.5  AN_CHRG (scaled 50%)
+	22,23 P2.6  VDD_SOC_CAP
+	24,25 P2.7  VDD_ARM_CAP
+
 */
 
 #define ADC_AN_SUP_CAP_1   (data[0]<<8|data[1])
@@ -81,15 +81,15 @@ int get_model()
 
 	proc = fopen("/proc/device-tree/model", "r");
 	if (!proc) {
-	    perror("model");
-	    return 0;
+		 perror("model");
+		 return 0;
 	}
 	fread(mdl, 256, 1, proc);
 	ptr = strstr(mdl, "TS-");
 	if (!strcmp(ptr, "TS-Andium"))
-	   return 0x718A;
-	else   
-	   return strtoull(ptr+3, NULL, 16);
+		return 0x718A;
+	else
+		return strtoull(ptr+3, NULL, 16);
 }
 #endif
 
@@ -111,7 +111,7 @@ int silabs_init()
 
 // Scale voltage to silabs 0-2.5V
 uint16_t inline sscale(uint16_t data){
-	return (data * 10000) / 4092;	
+	return (data * 10000) / 4092;
 	//	return data * (2.5/1023) * 1000;
 
 }
@@ -128,12 +128,12 @@ void do_info(int twifd)
 	uint8_t data[32];
 	unsigned int pct;
 	bzero(data, 32);
-	read(twifd, data, 32); 
+	read(twifd, data, 32);
 
 	printf("revision=0x%x\n", data[16]);
 	printf("supercap_v=%d\n", sscale(ADC_AN_SUP_CAP_1));
 	printf("supercap_tot=%d\n", rscale(ADC_AN_SUP_CAP_2, 20, 20));
-		
+
 	pct = ((ADC_AN_SUP_CAP_2*100/237));
 	if (pct > 311) {
 		pct = pct - 311;
@@ -147,7 +147,7 @@ void do_info(int twifd)
 	printf("v4p7=%d\n", rscale((data[4]<<8|data[5]), 20, 20));
 
 	printf("vin=%d\n", rscale(ADC_VIN, 1910, 107));
-	printf("v5_a=%d\n", rscale(ADC_5V2_A, 536, 422)); 
+	printf("v5_a=%d\n", rscale(ADC_5V2_A, 536, 422));
 	printf("v3p3=%d\n", rscale(ADC_3V3, 422, 422));
 	printf("ram_v1p35=%d\n", sscale(ADC_RAM_1V35));
 //	printf("vcore=%d\n", sscale((data[14]<<8|data[15])));
@@ -171,7 +171,7 @@ void do_info(int twifd)
 		break;
 	}
 
- 
+
 }
 
 static void usage(char **argv) {
@@ -180,8 +180,8 @@ static void usage(char **argv) {
 	  "\n"
 	  "  -i, --info              Get info about the microcontroller\n"
 	  "  -L, --sleep=<time>      Sleep CPU, <time> seconds to wake up in\n"
-	  "  -S, --tssiloon          Enable charging of TS-SILO supercaps\n"
-	  "  -s, --tssilooff         Disable charging of TS-SILO supercaps\n"
+	  "  -e, --tssiloon          Enable charging of TS-SILO supercaps\n"
+	  "  -d, --tssilooff         Disable charging of TS-SILO supercaps\n"
 	  "  -h, --help              This message\n",
 	  argv[0]
 	);
@@ -223,8 +223,8 @@ int main(int argc, char **argv)
 	if(twifd == -1)
 	  return 1;
 
-	while((c = getopt_long(argc, argv, 
-	  "iL:hSs",
+	while((c = getopt_long(argc, argv,
+	  "iL:hSsed",
 	  long_options, NULL)) != -1) {
 		switch (c) {
 		  case 'i':
@@ -234,9 +234,11 @@ int main(int argc, char **argv)
 			opt_sleep = 1;
 			opt_timewkup = strtoul(optarg, NULL, 0);
 			break;
+		  case 'e':
 		  case 'S':
 			opt_supercap = 1;
 			break;
+		  case 'd':
 		  case 's':
 			opt_supercap = 2;
 			break;
@@ -263,7 +265,7 @@ int main(int argc, char **argv)
 	}
 
 
-	
+
 	return 0;
 }
 
