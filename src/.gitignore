@@ -1,0 +1,4 @@
+get-opt
+load_fpga
+tshwctl
+tsmicroctl
