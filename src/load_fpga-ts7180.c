@@ -1,65 +1,65 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/time.h>
 #include <unistd.h>
-#include <inttypes.h>
+#include <gpiod.h>
 
 #include "ispvm.h"
-#include "gpiolib-fast.h"
 
-volatile uint32_t *mx6gpio;
+struct gpiod_chip *chip;
+struct gpiod_line *line_tck;
+struct gpiod_line *line_tms;
+struct gpiod_line *line_tdi;
+struct gpiod_line *line_tdo;
 
-#define TDI			1<<3
-#define TCK			1<<1
-#define TMS			1<<2
-#define TDO			1<<24
+#define CONSUMER "load_fpga"
 
 void sclock_ts7180()
 {
-	mx6gpio[(MX6_GPIO_BANK3 + GPDR)/4] |= TCK;
-	mx6gpio[(MX6_GPIO_BANK3 + GPDR)/4] &= ~(TCK);
+	gpiod_line_set_value(line_tck, 1);
+	gpiod_line_set_value(line_tck, 0);
 }
 
 int readport_ts7180(void)
 {
-	return (mx6gpio[(MX6_GPIO_BANK3 + GPPSR)/4] & TDO) ? 1 : 0;
+	return gpiod_line_get_value(line_tdo);
 }
 
 void writeport_ts7180(int pins, int val)
 {
-	uint8_t value = 0;
 	if(pins & g_ucPinTDI)
-		value |= TDI;
-	if(pins & g_ucPinTCK)
-		value |= TCK;
+		gpiod_line_set_value(line_tdi, val);
 	if(pins & g_ucPinTMS)
-		value |= TMS;
-
-	if(val) {
-		mx6gpio[(MX6_GPIO_BANK3 + GPDR)/4] |= value;
-	} else {
-		mx6gpio[(MX6_GPIO_BANK3 + GPDR)/4] &= ~value;
-	}
+		gpiod_line_set_value(line_tms, val);
+	if(pins & g_ucPinTCK)
+		gpiod_line_set_value(line_tck, val);
 }
 
 void init_ts7180(void)
 {
-	mx6gpio = gpiofast_init();
-	assert(mx6gpio != 0);
+	int ret;
+	chip = gpiod_chip_open_by_number(2);
+	assert(chip);
+	line_tck = gpiod_chip_get_line(chip, 1);
+	line_tms = gpiod_chip_get_line(chip, 2);
+	line_tdi = gpiod_chip_get_line(chip, 3);
+	line_tdo = gpiod_chip_get_line(chip, 24);
+	assert(line_tck && line_tms && line_tdi && line_tdo);
 
-	mx6gpio[(MX6_GPIO_BANK3 + GPGDIR)/4] |= TCK | TDI | TMS;
-	mx6gpio[(MX6_GPIO_BANK3 + GPGDIR)/4] &= ~(TDO);
-	mx6gpio[(MX6_GPIO_BANK3 + GPDR)/4] |= TCK | TDI | TMS;
+	ret = gpiod_line_request_output(line_tck, CONSUMER, 1);
+	ret |= gpiod_line_request_output(line_tms, CONSUMER, 1);
+	ret |= gpiod_line_request_output(line_tdi, CONSUMER, 1);
+	ret |= gpiod_line_request_input(line_tdo, CONSUMER);
+	assert(!ret);
 }
 
 void restore_ts7180(void)
 {
-	mx6gpio[(MX6_GPIO_BANK3 + GPGDIR)/4] &= ~(TDI | TCK | TMS);
+	gpiod_line_release(line_tck);
+	gpiod_line_release(line_tms);
+	gpiod_line_release(line_tdo);
+	gpiod_line_release(line_tdi);
+	gpiod_chip_close(chip);
 }
 
 void udelay_imx6(unsigned int us)

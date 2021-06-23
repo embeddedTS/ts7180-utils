@@ -1,8 +1,8 @@
 tshwctl_SOURCES = tshwctl.c fpga.c
-tshwctl_LDFLAGS = -lm
+tshwctl_LDFLAGS = -lm -Wall
 
-load_fpga_SOURCES = load_fpga-ts7180.c load_fpga.c -o load_fpga gpiolib-fast.c ispvm.c
-load_fpga_LDFLAGS = -mcpu=cortex-a9
+load_fpga_SOURCES = load_fpga-ts7180.c load_fpga.c -o load_fpga ispvm.c
+load_fpga_LDFLAGS = -mcpu=cortex-a9 -lgpiod -Wall
 
 silabs_SOURCES = silabs.c
 
