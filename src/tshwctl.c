@@ -39,7 +39,7 @@ int get_model()
 void usage(char **argv) {
 	fprintf(stderr,
 		"Usage: %s [OPTIONS] ...\n"
-		"Technologic Systems I2C FPGA Utility\n"
+		"embeddedTS I2C FPGA Utility\n"
 		"\n"
 		"  -a, --addr <address>   Sets up the address for a peek/poke\n"
 		"  -w, --poke <value>     Writes the value to the specified address\n"

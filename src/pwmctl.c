@@ -34,7 +34,7 @@ int get_model()
 void usage(char **argv) {
    fprintf(stderr,
       "Usage: %s [OPTIONS] ...\n"
-      "Technologic Systems PWM Utility\n"
+      "embeddedTS PWM Utility\n"
       "\n"
 
       "\n",
